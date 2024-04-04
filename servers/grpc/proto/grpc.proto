@@ -1,0 +1,21 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/laozhubaba/api_proj/servers/grpc/proto";
+
+service Api {
+    rpc GetUsers(google.protobuf.Empty) returns (GetUsersResponse);
+    rpc GetUser(UserId) returns (GetUserResponse);
+}
+
+message GetUsersResponse {
+    string message = 1;
+}
+
+message UserId {
+    int64 message = 1;
+}
+
+message GetUserResponse {
+    string message = 1;
+}
