@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ApiClient interface {
 	GetUsers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUsersResponse, error)
+	GetUsersStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Api_GetUsersStreamClient, error)
 	GetUser(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*GetUserResponse, error)
 }
 
@@ -44,6 +45,38 @@ func (c *apiClient) GetUsers(ctx context.Context, in *emptypb.Empty, opts ...grp
 	return out, nil
 }
 
+func (c *apiClient) GetUsersStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Api_GetUsersStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Api_ServiceDesc.Streams[0], "/Api/GetUsersStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &apiGetUsersStreamClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Api_GetUsersStreamClient interface {
+	Recv() (*GetUserResponse, error)
+	grpc.ClientStream
+}
+
+type apiGetUsersStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *apiGetUsersStreamClient) Recv() (*GetUserResponse, error) {
+	m := new(GetUserResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *apiClient) GetUser(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*GetUserResponse, error) {
 	out := new(GetUserResponse)
 	err := c.cc.Invoke(ctx, "/Api/GetUser", in, out, opts...)
@@ -58,6 +91,7 @@ func (c *apiClient) GetUser(ctx context.Context, in *UserId, opts ...grpc.CallOp
 // for forward compatibility
 type ApiServer interface {
 	GetUsers(context.Context, *emptypb.Empty) (*GetUsersResponse, error)
+	GetUsersStream(*emptypb.Empty, Api_GetUsersStreamServer) error
 	GetUser(context.Context, *UserId) (*GetUserResponse, error)
 	mustEmbedUnimplementedApiServer()
 }
@@ -68,6 +102,9 @@ type UnimplementedApiServer struct {
 
 func (UnimplementedApiServer) GetUsers(context.Context, *emptypb.Empty) (*GetUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
+}
+func (UnimplementedApiServer) GetUsersStream(*emptypb.Empty, Api_GetUsersStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetUsersStream not implemented")
 }
 func (UnimplementedApiServer) GetUser(context.Context, *UserId) (*GetUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
@@ -101,6 +138,27 @@ func _Api_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(interf
 		return srv.(ApiServer).GetUsers(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _Api_GetUsersStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ApiServer).GetUsersStream(m, &apiGetUsersStreamServer{stream})
+}
+
+type Api_GetUsersStreamServer interface {
+	Send(*GetUserResponse) error
+	grpc.ServerStream
+}
+
+type apiGetUsersStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *apiGetUsersStreamServer) Send(m *GetUserResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _Api_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -137,6 +195,12 @@ var Api_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Api_GetUser_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetUsersStream",
+			Handler:       _Api_GetUsersStream_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "pkg/server/grpc/proto/grpc.proto",
 }

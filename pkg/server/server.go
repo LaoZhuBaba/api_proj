@@ -48,6 +48,22 @@ func (sl SimpleLogic) GetUsers() (persons []Person, err error) {
 
 }
 
+func (sl SimpleLogic) GetUsersStream() (persons []Person, err error) {
+	r, err := sl.ds.GetAllUsers()
+	if err != nil {
+		sl.l.Log(fmt.Sprintf("failed to get user list: %v", err))
+		return nil, err
+	}
+	err = json.NewDecoder(r).Decode(&persons)
+	if err != nil {
+		sl.l.Log(fmt.Sprintf("failed to decode user list: %v", err))
+		return persons, err
+	}
+	sl.l.Log("returning user name list")
+	return persons, nil
+
+}
+
 func NewSimpleLogic(l Logger, ds DataStore) SimpleLogic {
 	return SimpleLogic{l: l, ds: ds}
 }

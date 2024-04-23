@@ -22,3 +22,8 @@ type Logic interface {
 	GetUser(int) (Person, error)
 	GetUsers() ([]Person, error)
 }
+
+type LogicStream interface {
+	Logic
+	GetUsersStream() ([]Person, error)
+}

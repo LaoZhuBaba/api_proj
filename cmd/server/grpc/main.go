@@ -16,5 +16,5 @@ func main() {
 	ds := fakedb.NewFakeDB(ctx)
 	logic := server.NewSimpleLogic(l, ds)
 	c, _ := grpc.NewControler(ctx, "localhost", 8080, logic, l)
-	_ = c.Run()
+	c.Run()
 }
