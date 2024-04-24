@@ -12,7 +12,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	l := server.LoggerAdapter(logger.LogOutput)
+	l := logger.New()
 	ds := fakedb.NewFakeDB(ctx, 2000)
 	logic := server.NewSimpleLogic(l, ds)
 	c := rest.NewRestController(ctx, l, logic)

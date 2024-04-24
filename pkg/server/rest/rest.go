@@ -12,13 +12,13 @@ import (
 
 type Controller struct {
 	server.Logic
-	server.Logger
-	Rtr *mux.Router
+	logger server.Logger
+	Rtr    *mux.Router
 }
 
 func NewRestController(ctx context.Context, l server.Logger, logic server.Logic) (c Controller) {
 	rtr := mux.NewRouter()
-	c = Controller{Logger: l, Logic: logic, Rtr: rtr}
+	c = Controller{logger: l, Logic: logic, Rtr: rtr}
 	rtr.HandleFunc("/api/user/{userid}", c.GetUser).Methods("GET")
 	rtr.HandleFunc("/api/user", c.GetUsers).Methods("GET")
 	rtr.HandleFunc("/api/user", c.AddUser).Methods("POST")
@@ -26,26 +26,26 @@ func NewRestController(ctx context.Context, l server.Logger, logic server.Logic)
 }
 
 func (c Controller) AddUser(w http.ResponseWriter, r *http.Request) {
-	c.Logger.Logf("in rest controller for AddUser")
+	c.logger.Info("in rest controller for AddUser")
 	w.Header().Set("Content-Type", "application/json")
 	person := server.Person{}
 	err := json.NewDecoder(r.Body).Decode(&person)
 	if err != nil {
-		c.Logger.Logf("cannot decode data: %v", err)
+		c.logger.Error("cannot decode data: %v", err)
 	}
 	err = c.Logic.AddUser(person)
 	if err != nil {
-		c.Logger.Logf("Adduser failed: %v", err)
+		c.logger.Error("Adduser failed: %v", err)
 	}
 }
 func (c Controller) GetUser(w http.ResponseWriter, r *http.Request) {
-	c.Logger.Logf("in rest controller for GetUser")
+	c.logger.Info("in rest controller for GetUser")
 	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	userIdStr := vars["userid"]
 	userIdInt, err := strconv.Atoi(userIdStr)
 	if err != nil {
-		c.Logger.Logf("cannot convert string: %s to integer", userIdStr)
+		c.logger.Error("cannot convert string: %s to integer", userIdStr)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
@@ -65,7 +65,7 @@ func (c Controller) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) GetUsers(w http.ResponseWriter, r *http.Request) {
-	c.Logger.Logf("in rest controller for GetUser")
+	c.logger.Info("in rest controller for GetUser")
 	w.Header().Set("Content-Type", "application/json")
 	message, err := c.Logic.GetUsers()
 	if err != nil {

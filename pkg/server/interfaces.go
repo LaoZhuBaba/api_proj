@@ -2,14 +2,11 @@ package server
 
 import "io"
 
-type LoggerAdapter func(string, ...any)
-
-func (l LoggerAdapter) Logf(s string, other ...any) {
-	l(s, other...)
-}
-
 type Logger interface {
-	Logf(string, ...any)
+	Debug(string, ...any)
+	Error(string, ...any)
+	Info(string, ...any)
+	Warn(string, ...any)
 }
 
 type DataStore interface {
