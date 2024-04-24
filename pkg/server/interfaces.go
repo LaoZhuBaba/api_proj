@@ -2,25 +2,26 @@ package server
 
 import "io"
 
-type LoggerAdapter func(string)
+type LoggerAdapter func(string, ...any)
 
-func (l LoggerAdapter) Log(s string) {
-	l(s)
+func (l LoggerAdapter) Logf(s string, other ...any) {
+	l(s, other...)
 }
 
 type Logger interface {
-	Log(string)
+	Logf(string, ...any)
 }
 
 type DataStore interface {
 	GetAllUsers() (io.Reader, error)
 	GetUserById(int) (io.Reader, error)
-	AddUser(string) (int, error)
+	AddUser(string, string) (int, error)
 }
 
 type Logic interface {
 	GetUser(int) (Person, error)
 	GetUsers() ([]Person, error)
+	AddUser(Person) error
 }
 
 type LogicStream interface {

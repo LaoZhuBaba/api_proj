@@ -13,7 +13,7 @@ import (
 func main() {
 	ctx := context.Background()
 	l := server.LoggerAdapter(logger.LogOutput)
-	ds := fakedb.NewFakeDB(ctx)
+	ds := fakedb.NewFakeDB(ctx, 2000)
 	logic := server.NewSimpleLogic(l, ds)
 	c := rest.NewRestController(ctx, l, logic)
 	http.ListenAndServe("localhost:8080", c.Rtr)

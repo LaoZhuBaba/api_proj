@@ -26,6 +26,7 @@ type ApiClient interface {
 	GetUsers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetUsersResponse, error)
 	GetUsersStream(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (Api_GetUsersStreamClient, error)
 	GetUser(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*GetUserResponse, error)
+	AddUser(ctx context.Context, in *GetUserResponse, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type apiClient struct {
@@ -86,6 +87,15 @@ func (c *apiClient) GetUser(ctx context.Context, in *UserId, opts ...grpc.CallOp
 	return out, nil
 }
 
+func (c *apiClient) AddUser(ctx context.Context, in *GetUserResponse, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/Api/AddUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ApiServer is the server API for Api service.
 // All implementations must embed UnimplementedApiServer
 // for forward compatibility
@@ -93,6 +103,7 @@ type ApiServer interface {
 	GetUsers(context.Context, *emptypb.Empty) (*GetUsersResponse, error)
 	GetUsersStream(*emptypb.Empty, Api_GetUsersStreamServer) error
 	GetUser(context.Context, *UserId) (*GetUserResponse, error)
+	AddUser(context.Context, *GetUserResponse) (*emptypb.Empty, error)
 	mustEmbedUnimplementedApiServer()
 }
 
@@ -108,6 +119,9 @@ func (UnimplementedApiServer) GetUsersStream(*emptypb.Empty, Api_GetUsersStreamS
 }
 func (UnimplementedApiServer) GetUser(context.Context, *UserId) (*GetUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+}
+func (UnimplementedApiServer) AddUser(context.Context, *GetUserResponse) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddUser not implemented")
 }
 func (UnimplementedApiServer) mustEmbedUnimplementedApiServer() {}
 
@@ -179,6 +193,24 @@ func _Api_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Api_AddUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserResponse)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ApiServer).AddUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Api/AddUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ApiServer).AddUser(ctx, req.(*GetUserResponse))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Api_ServiceDesc is the grpc.ServiceDesc for Api service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -193,6 +225,10 @@ var Api_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUser",
 			Handler:    _Api_GetUser_Handler,
+		},
+		{
+			MethodName: "AddUser",
+			Handler:    _Api_AddUser_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

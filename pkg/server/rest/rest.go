@@ -3,37 +3,49 @@ package rest
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/laozhubaba/api_proj/internal/logger"
 	"github.com/laozhubaba/api_proj/pkg/server"
 )
 
 type Controller struct {
 	server.Logic
-	logger.Logger
+	server.Logger
 	Rtr *mux.Router
 }
 
 func NewRestController(ctx context.Context, l server.Logger, logic server.Logic) (c Controller) {
 	rtr := mux.NewRouter()
 	c = Controller{Logger: l, Logic: logic, Rtr: rtr}
-	rtr.HandleFunc("/api/user/{userid}", c.GetUser)
-	rtr.HandleFunc("/api/user", c.GetUsers)
+	rtr.HandleFunc("/api/user/{userid}", c.GetUser).Methods("GET")
+	rtr.HandleFunc("/api/user", c.GetUsers).Methods("GET")
+	rtr.HandleFunc("/api/user", c.AddUser).Methods("POST")
 	return c
 }
 
+func (c Controller) AddUser(w http.ResponseWriter, r *http.Request) {
+	c.Logger.Logf("in rest controller for AddUser")
+	w.Header().Set("Content-Type", "application/json")
+	person := server.Person{}
+	err := json.NewDecoder(r.Body).Decode(&person)
+	if err != nil {
+		c.Logger.Logf("cannot decode data: %v", err)
+	}
+	err = c.Logic.AddUser(person)
+	if err != nil {
+		c.Logger.Logf("Adduser failed: %v", err)
+	}
+}
 func (c Controller) GetUser(w http.ResponseWriter, r *http.Request) {
-	c.Logger.Log("in rest controller for GetUser")
+	c.Logger.Logf("in rest controller for GetUser")
+	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
-	c.Logger.Log(fmt.Sprintf("vars: %s", vars))
 	userIdStr := vars["userid"]
 	userIdInt, err := strconv.Atoi(userIdStr)
 	if err != nil {
-		c.Logger.Log(fmt.Sprintf("cannot convert string: %s to integer", userIdStr))
+		c.Logger.Logf("cannot convert string: %s to integer", userIdStr)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
@@ -53,7 +65,8 @@ func (c Controller) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) GetUsers(w http.ResponseWriter, r *http.Request) {
-	c.Logger.Log("in rest controller for GetUser")
+	c.Logger.Logf("in rest controller for GetUser")
+	w.Header().Set("Content-Type", "application/json")
 	message, err := c.Logic.GetUsers()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/laozhubaba/api_proj/internal/logger"
 	"github.com/laozhubaba/api_proj/pkg/server"
 	"github.com/laozhubaba/api_proj/pkg/server/grpc/proto"
 	"google.golang.org/grpc"
@@ -15,7 +14,7 @@ import (
 
 type Controller struct {
 	Logic server.LogicStream
-	logger.Logger
+	server.Logger
 	proto.UnimplementedApiServer
 	addr string
 	port int
@@ -25,15 +24,25 @@ func NewControler(ctx context.Context, addr string, port int, logic server.Logic
 	return Controller{Logic: logic, addr: addr, port: port, Logger: logger}, nil
 }
 
+func (c Controller) AddUser(ctx context.Context, msg *proto.GetUserResponse) (*emptypb.Empty, error) {
+	c.Logf("in grcp controller for AddUser")
+	person := server.Person{Name: msg.Name, Address: msg.Address}
+	err := c.Logic.AddUser(person)
+	if err != nil {
+		c.Logf("error returned from AddUser: %v", err)
+	}
+	return nil, err
+}
+
 func (c Controller) GetUser(ctx context.Context, u *proto.UserId) (*proto.GetUserResponse, error) {
-	c.Log("in grcp controller for GetUser")
+	c.Logf("in grcp controller for GetUser")
 	id := u.Message
 	person, _ := c.Logic.GetUser(int(id))
 	return &proto.GetUserResponse{Name: person.Name, Address: person.Address}, nil
 }
 
 func (c Controller) GetUsers(ctx context.Context, _ *emptypb.Empty) (persons *proto.GetUsersResponse, err error) {
-	c.Log("in non-streaming grcp controller for GetUsers")
+	c.Logf("in non-streaming grcp controller for GetUsers")
 	users, _ := c.Logic.GetUsers()
 	persons = &proto.GetUsersResponse{
 		Users: []*proto.GetUserResponse{},
@@ -45,12 +54,12 @@ func (c Controller) GetUsers(ctx context.Context, _ *emptypb.Empty) (persons *pr
 }
 
 func (c Controller) GetUsersStream(_ *emptypb.Empty, stream proto.Api_GetUsersStreamServer) error {
-	c.Log("in streaming grcp controller for GetUsers")
+	c.Logf("in streaming grcp controller for GetUsers")
 	users, _ := c.Logic.GetUsers()
 	for _, user := range users {
 		msg := &proto.GetUserResponse{Name: user.Name, Address: user.Address}
 		if err := stream.Send(msg); err != nil {
-			c.Logger.Log("error while reading stream")
+			c.Logger.Logf("error while reading stream")
 			return err
 		}
 	}
