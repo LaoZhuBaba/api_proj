@@ -13,6 +13,6 @@ import (
 func StartGrpc(ctx context.Context, l logger.Logger, ds server.DataStore) {
 	l.Info("starting GRPC server on port %d", common.GrcpPort)
 	logic := server.NewSimpleLogic(l, ds)
-	c, _ := grpc.NewControler(ctx, "localhost", common.GrcpPort, logic, l)
+	c, _ := grpc.NewGrpcController(ctx, "localhost", common.GrcpPort, logic, l)
 	c.Run()
 }

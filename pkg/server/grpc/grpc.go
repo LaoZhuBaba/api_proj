@@ -20,7 +20,7 @@ type Controller struct {
 	port int
 }
 
-func NewControler(ctx context.Context, addr string, port int, logic server.LogicStream, logger server.Logger) (Controller, error) {
+func NewGrpcController(ctx context.Context, addr string, port int, logic server.LogicStream, logger server.Logger) (Controller, error) {
 	return Controller{Logic: logic, addr: addr, port: port, logger: logger}, nil
 }
 
