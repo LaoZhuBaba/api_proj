@@ -13,10 +13,18 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func AddUser(person server.Person) error {
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", common.GrcpPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
+func setupConn() (conn *grpc.ClientConn, err error) {
+	conn, err = grpc.Dial(fmt.Sprintf("localhost:%d", common.GrcpPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Printf("could not connect to GRPC server: %v", err)
+		return nil, err
+	}
+	return conn, err
+}
+
+func AddUser(person server.Person) error {
+	conn, err := setupConn()
+	if err != nil {
 		return err
 	}
 	defer conn.Close()
@@ -30,9 +38,8 @@ func AddUser(person server.Person) error {
 }
 
 func GetUser(id int) (person *server.Person, err error) {
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", common.GrcpPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := setupConn()
 	if err != nil {
-		log.Printf("could not connect to GRPC server: %v", err)
 		return nil, err
 	}
 	defer conn.Close()
@@ -49,9 +56,8 @@ func GetUser(id int) (person *server.Person, err error) {
 }
 
 func GetAllUsers() (persons []server.Person, err error) {
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%d", common.GrcpPort), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := setupConn()
 	if err != nil {
-		log.Printf("could not connect to GRPC server: %v", err)
 		return nil, err
 	}
 	defer conn.Close()
