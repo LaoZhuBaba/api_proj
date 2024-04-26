@@ -1,4 +1,4 @@
-package restclient
+package grcpclient
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/laozhubaba/api_proj/cmd/server/common"
-	"github.com/laozhubaba/api_proj/cmd/server/rest/start"
+	"github.com/laozhubaba/api_proj/cmd/server/grpc/start"
 	"github.com/laozhubaba/api_proj/pkg/server"
 )
 
@@ -19,8 +19,8 @@ func TestRestClient(t *testing.T) {
 		log.Printf("cancel function running...")
 		cancel()
 	})
-	log.Printf("starting the REST server...")
-	go common.Start(ctx, start.StartRest)
+	log.Printf("starting the GRPC server...")
+	go common.Start(ctx, start.StartGrpc)
 	log.Printf("sleeping for 10 milliseconds to give the server time to start...")
 	time.Sleep(10 * time.Millisecond)
 

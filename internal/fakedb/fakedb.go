@@ -28,12 +28,8 @@ type database struct {
 
 func NewFakeDB(ctx context.Context, fakeLatency time.Duration) *database {
 	return &database{
-		users: []person{
-			{UserId: 1, Name: "David", Address: "David's address"},
-			{UserId: 2, Name: "Mary", Address: "Mary's address"},
-			{UserId: 3, Name: "Fred", Address: "Fred's address"},
-		},
-		maxId:       3,
+		users:       []person{},
+		maxId:       0,
 		fakeLatency: fakeLatency,
 		mutex:       &sync.Mutex{},
 	}
