@@ -18,7 +18,10 @@ const (
 // Start sets up common components (logger and datastore) then launches the specified server)
 func Start(ctx context.Context, server func(context.Context, logger.Logger, server.DataStore)) {
 	l := logger.New()
-	ds, _ := gormdb.NewGormDb() // switch to using SqlLite via GORM
+	ds, err := gormdb.NewGormDb(ctx) // switch to using SqlLite via GORM
+	if err != nil {
+		l.Error("failed to create gormdb: %v", err)
+	}
 	//ds := fakedb.NewFakeDB(ctx, 200*time.Millisecond) // Second param is a fake latency value so we can test time-outs
 	server(ctx, l, ds)
 }

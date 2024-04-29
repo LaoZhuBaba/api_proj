@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 )
 
@@ -10,6 +11,7 @@ type SimpleLogic struct {
 }
 
 type Person struct {
+	ID      int32  `json:"id"`
 	Name    string `json:"name"`
 	Address string `json:"address"`
 }
@@ -30,7 +32,12 @@ func (sl SimpleLogic) GetUser(id int) (person Person, err error) {
 }
 
 func (sl SimpleLogic) AddUser(person Person) (err error) {
-	sl.ds.AddUser(person.Name, person.Address)
+	b, err := json.Marshal(person)
+	if err != nil {
+		sl.l.Error("failed to marshal person struct: %v", err)
+	}
+	rdr := bytes.NewReader(b)
+	sl.ds.AddUser(rdr)
 	return nil
 }
 

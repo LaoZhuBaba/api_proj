@@ -16,7 +16,7 @@ func TestRestClient(t *testing.T) {
 	log.Printf("creating context with cancel...")
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(func() {
-		log.Printf("cancel function running...")
+		log.Printf("running cancel function...")
 		cancel()
 	})
 	log.Printf("starting the GRPC server...")
@@ -41,6 +41,7 @@ func _testAddUser(t *testing.T) {
 			name: "Add John",
 			args: args{
 				person: server.Person{
+					ID:      1,
 					Name:    "John",
 					Address: "123 Horrid Lane",
 				},
@@ -51,6 +52,7 @@ func _testAddUser(t *testing.T) {
 			name: "Add Mary",
 			args: args{
 				person: server.Person{
+					ID:      2,
 					Name:    "Mary",
 					Address: "234 Lovely Lane",
 				},
@@ -61,6 +63,7 @@ func _testAddUser(t *testing.T) {
 			name: "Add Ann",
 			args: args{
 				person: server.Person{
+					ID:      3,
 					Name:    "Ann",
 					Address: "789 Somewhere Else",
 				},
@@ -93,6 +96,7 @@ func _testGetUser(t *testing.T) {
 				id: 1,
 			},
 			wantPerson: &server.Person{
+				ID:      1,
 				Name:    "John",
 				Address: "123 Horrid Lane",
 			},
@@ -104,6 +108,7 @@ func _testGetUser(t *testing.T) {
 				id: 2,
 			},
 			wantPerson: &server.Person{
+				ID:      2,
 				Name:    "Mary",
 				Address: "234 Lovely Lane",
 			},
@@ -115,6 +120,7 @@ func _testGetUser(t *testing.T) {
 				id: 3,
 			},
 			wantPerson: &server.Person{
+				ID:      3,
 				Name:    "Ann",
 				Address: "789 Somewhere Else",
 			},
@@ -144,14 +150,17 @@ func _testGetAllUsers(t *testing.T) {
 			name: "test GetAllUsers",
 			wantPersons: []server.Person{
 				{
+					ID:      1,
 					Name:    "John",
 					Address: "123 Horrid Lane",
 				},
 				{
+					ID:      2,
 					Name:    "Mary",
 					Address: "234 Lovely Lane",
 				},
 				{
+					ID:      3,
 					Name:    "Ann",
 					Address: "789 Somewhere Else",
 				},

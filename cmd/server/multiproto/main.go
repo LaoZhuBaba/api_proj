@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/laozhubaba/api_proj/cmd/server/common"
@@ -11,8 +12,17 @@ import (
 
 func main() {
 	var wg sync.WaitGroup
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	wg.Add(2)
-	go common.Start(context.Background(), grcp_start.StartGrpc)
-	go common.Start(context.Background(), rest_start.StartRest)
+	go func() {
+		defer wg.Done()
+		common.Start(ctx, grcp_start.StartGrpc)
+	}()
+	go func() {
+		defer wg.Done()
+		common.Start(ctx, rest_start.StartRest)
+	}()
 	wg.Wait()
+	fmt.Printf("exiting at the end of main() with error: %v\n", ctx.Err())
 }

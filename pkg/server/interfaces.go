@@ -12,7 +12,7 @@ type Logger interface {
 type DataStore interface {
 	GetAllUsers() (io.Reader, error)
 	GetUserById(int) (io.Reader, error)
-	AddUser(string, string) (int, error)
+	AddUser(io.Reader) (int, error)
 }
 
 type Logic interface {

@@ -38,7 +38,7 @@ func (c Controller) GetUser(ctx context.Context, u *proto.UserId) (*proto.GetUse
 	c.logger.Info("in grcp controller for GetUser")
 	id := u.Message
 	person, _ := c.Logic.GetUser(int(id))
-	return &proto.GetUserResponse{Name: person.Name, Address: person.Address}, nil
+	return &proto.GetUserResponse{Name: person.Name, Address: person.Address, Id: person.ID}, nil
 }
 
 func (c Controller) GetUsers(ctx context.Context, _ *emptypb.Empty) (persons *proto.GetUsersResponse, err error) {
@@ -48,7 +48,7 @@ func (c Controller) GetUsers(ctx context.Context, _ *emptypb.Empty) (persons *pr
 		Users: []*proto.GetUserResponse{},
 	}
 	for _, user := range users {
-		persons.Users = append(persons.Users, &proto.GetUserResponse{Name: user.Name, Address: user.Address})
+		persons.Users = append(persons.Users, &proto.GetUserResponse{Name: user.Name, Address: user.Address, Id: user.ID})
 	}
 	return persons, nil
 }
@@ -57,7 +57,7 @@ func (c Controller) GetUsersStream(_ *emptypb.Empty, stream proto.Api_GetUsersSt
 	c.logger.Info("in streaming grcp controller for GetUsers")
 	users, _ := c.Logic.GetUsers()
 	for _, user := range users {
-		msg := &proto.GetUserResponse{Name: user.Name, Address: user.Address}
+		msg := &proto.GetUserResponse{Name: user.Name, Address: user.Address, Id: user.ID}
 		if err := stream.Send(msg); err != nil {
 			c.logger.Error("error while reading stream")
 			return err

@@ -17,6 +17,7 @@ message UserId {
 message GetUserResponse {
     string name = 1;
     string address = 2;
+    int32 id = 3;
 }
 
 message GetUsersResponse {

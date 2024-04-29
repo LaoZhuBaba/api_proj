@@ -14,7 +14,7 @@ import (
 )
 
 type person struct {
-	UserId  int    `json:"userid"`
+	UserId  int    `json:"id"`
 	Name    string `json:"name"`
 	Address string `json:"address"`
 }
@@ -24,6 +24,7 @@ type database struct {
 	maxId       int
 	fakeLatency time.Duration
 	mutex       *sync.Mutex
+	ctx         context.Context
 }
 
 func NewFakeDB(ctx context.Context, fakeLatency time.Duration) *database {
@@ -32,6 +33,7 @@ func NewFakeDB(ctx context.Context, fakeLatency time.Duration) *database {
 		maxId:       0,
 		fakeLatency: fakeLatency,
 		mutex:       &sync.Mutex{},
+		ctx:         ctx,
 	}
 }
 
@@ -42,11 +44,15 @@ func (db *database) housekeeping() func() {
 		db.mutex.Unlock()
 	}
 }
-func (db *database) AddUser(name string, address string) (id int, err error) {
+
+func (db *database) AddUser(rdr io.Reader) (id int, err error) {
 	defer db.housekeeping()()
+	p := person{}
+	if err := json.NewDecoder(rdr).Decode(&p); err != nil {
+		return -1, err
+	}
 	id = db.maxId + 1
 	db.maxId++
-	p := person{Name: name, Address: address, UserId: id}
 	db.users = append(db.users, p)
 	return id, nil
 }

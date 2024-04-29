@@ -52,6 +52,7 @@ func GetUser(id int) (person *server.Person, err error) {
 	}
 	person.Name = resp.Name
 	person.Address = resp.Address
+	person.ID = resp.Id
 	return person, nil
 }
 
@@ -69,7 +70,7 @@ func GetAllUsers() (persons []server.Person, err error) {
 		return nil, err
 	}
 	for _, person := range resp.Users {
-		persons = append(persons, server.Person{Name: person.Name, Address: person.Address})
+		persons = append(persons, server.Person{Name: person.Name, Address: person.Address, ID: person.Id})
 	}
 	return persons, nil
 }

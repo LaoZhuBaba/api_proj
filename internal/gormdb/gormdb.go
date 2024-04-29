@@ -2,6 +2,7 @@ package gormdb
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -16,23 +17,29 @@ const (
 )
 
 type person struct {
-	ID      int    `json:"userid"`
+	ID      int    `json:"id"`
 	Name    string `json:"name"`
 	Address string `json:"address"`
 }
 
 type GormDb struct {
-	db *gorm.DB
+	db  *gorm.DB
+	ctx context.Context
 }
 
-func NewGormDb() (db *GormDb, err error) {
+func NewGormDb(ctx context.Context) (db *GormDb, err error) {
 	slog.Info("Initialising SqlLite database")
 	d, err := gorm.Open(sqlite.Open(dbpath), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
-	d.AutoMigrate(&person{})
-	return &GormDb{db: d}, err
+	// wrap our db in a context
+	d = d.WithContext(ctx)
+	err = d.AutoMigrate(&person{})
+	if err != nil {
+		return nil, err
+	}
+	return &GormDb{ctx: ctx, db: d}, err
 }
 
 func (g GormDb) GetAllUsers() (rdr io.Reader, err error) {
@@ -65,9 +72,12 @@ func (g GormDb) GetUserById(id int) (rdr io.Reader, err error) {
 	return rdr, nil
 }
 
-func (g GormDb) AddUser(name string, address string) (int, error) {
-	p := person{Name: name, Address: address}
-	result := g.db.Create(&person{Name: name, Address: address})
+func (g GormDb) AddUser(rdr io.Reader) (int, error) {
+	p := &person{}
+	if err := json.NewDecoder(rdr).Decode(p); err != nil {
+		return -1, err
+	}
+	result := g.db.Create(p)
 	if result.Error != nil {
 		return 0, result.Error
 	}

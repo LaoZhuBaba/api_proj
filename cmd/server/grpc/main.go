@@ -8,5 +8,7 @@ import (
 )
 
 func main() {
-	common.Start(context.Background(), start.StartGrpc)
+	ctx, cancel := context.WithCancel(context.Background())
+	common.Start(ctx, start.StartGrpc)
+	cancel()
 }
